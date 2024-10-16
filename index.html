@@ -1,1 +1,156 @@
-Hello World
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PhD student in Linguistics focusing on computational speech processing, fieldwork, and phonology">
+    <title>Mark Simmons | Linguistics PhD Student</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #fff;
+            background-color: #1a237e; /* Dark blue */
+        }
+        header {
+            background-color: #0d47a1; /* Darker blue */
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+        }
+        nav {
+            text-align: center;
+            margin: 15px 0;
+        }
+        nav a {
+            color: #82b1ff; /* Lighter blue for links */
+            text-decoration: none;
+            margin: 0 15px;
+            cursor: pointer;
+        }
+        section {
+            display: none;
+            margin: 20px auto;
+            max-width: 800px;
+            padding: 20px;
+            background-color: #283593; /* Another shade of dark blue */
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        section.active {
+            display: block;
+        }
+        h1, h2 {
+            color: #82b1ff;
+        }
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #0d47a1;
+            color: white;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+        img {
+            display: block;
+            margin: 20px auto;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 3px solid white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Mark Simmons</h1>
+        <h2>PhD Student in Linguistics</h2>
+        <p>Computational Speech Processing | Language documentation | Phonology</p>
+    </header>
+
+    <nav>
+        <a onclick="showSection('about')">About</a>
+        <a onclick="showSection('research')">Research</a>
+        <a onclick="showSection('publications')">Curriculum Vitae</a>
+        <a onclick="showSection('contact')">Contact</a>
+    </nav>
+
+    <section id="about" class="active">
+        <h2>About Me</h2>
+        <img src="headshot.jpeg" alt="Portrait">
+        <p>
+            I am a PhD student in Linguistics specializing in computational speech processing, fieldwork, and phonology. 
+            My research focuses on exploring how computational models can analyze speech data, especially from under-documented languages, and on the study of sound systems.
+        </p>
+    </section>
+
+    <section id="research">
+        <h2>Research Interests</h2>
+        <ul>
+            <li>Automatic Speech Recognition (ASR) for low-resource languages</li>
+            <li>ASR for codemixed and bilingual audio</li>
+            <li>Computational methdos for aiding language documentation</li>
+        </ul>
+        My research focuses on computational methods in language documentation, particularly focusing on adapting foundational ASR architectures for processing fieldwork data.
+        I work with Tira, a Kordofanian language spoken in Sudan.
+        I am interested in how to improve automatic recognition of tone, ASR on low-resourced languages when code-mixed with high-resource languages, and morphological parsing for low-resource languages.
+    </section>
+
+    <section id="publications">
+        <h2>Publications</h2>
+        <ul>
+            <li>Simmons, Mark 2024. Anonymous submission. <i>8th Workshop on the Use of Computational Methods for the Study of Endangered Languages.</i> <b>Submitted.</b></li>
+            <li>Simmons, Mark 2024. Anonymous submission. <i>Phonology.</i> <b>Submitted.</b></li>
+            <li><b>Simmons, Mark</b> and Patience, Epps 2024. Anonymous submission. <i>Diachronica</i> <b>Submitted.</b></li>
+        </ul>
+
+        <h2>Presentations and talks</h2>
+        <ul>
+            <li>Simmons, Mark. Morphologically constrained metaphony in Tira. A talk presented at Phonetics and Phonology in Europe 2023 Satellite Workshop 'Metaphony' June 1, 2023</li>
+            <li>Rose, Sharon and <b>Simmons, Mark.</b> Focus, topic and prosody in Tira. A talk presented at the 6th African Linguistics School in Porto Novo, Bénin.</li>
+            <li>Simmons, Mark. Reconstructing word-final voicing in Nadëb. A poster presented at the Annual Meeting for the Linguistics Society of America, January 6-9, 2022</li>
+        </ul>
+
+        <h2>Teaching experience</h2>
+        <ul>
+            <li><a href="https://savethevowels.org/files/l168_mark_slides.pdf" target="_blank" style="color: #82b1ff;">Guest lecture on speaker and language recognition</a> for LIGN 168.</li>
+            <li>Teaching assistant for LIGN 168: Computational speech processing at UCSD, Spring 2024.</li>            
+            <li>Teaching assistant for LIGN 8: Languages of America at UCSD, Winter 2024.</li>            
+            <li>Teaching assistant for LIGN 110: Phonetics at UCSD, Fall 2023.</li>            
+            <li>Teaching assistant for LIGN 8: Languages of America at UCSD, Spring 2023.</li>            
+            <li>Guest lecture on vowel harmony in Tira for LIGN 111.</li>           
+            <li>Teaching assistant for LIGN 111: Phonology at UCSD, Winter 2023.</li> 
+            <li>Teaching assistant for LIGN 110: Phonetics at UCSD, Fall 2022.</li>            
+        </ul>
+
+        <h2>Languages and skills</h2>
+        <ul>
+            <li>Spanish</li>
+            <li>Portuguese</li>
+            <li>Python</li>
+        </ul>
+        
+    </section>
+
+    <section id="contact">
+        <h2>Contact</h2>
+        <p>Email: mjsimmons at ucsd dot edu</a></p>
+        <p>GitHub: <a href="https://github.com/markjosims" target="_blank" style="color: #82b1ff;">github.com/markjosims</a></p>
+        <p>LinkedIn: <a href="https://www.linkedin.com/in/mark-simmons-794020175/" target="_blank" style="color: #82b1ff;">www.linkedin.com/in/mark-simmons-794020175/</a></p>
+    </section>
+
+    <footer>
+        &copy; 2024 Mark Simmons
+    </footer>
+
+    <script>
+        function showSection(sectionId) {
+            const sections = document.querySelectorAll('section');
+            sections.forEach(section => section.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+        }
+    </script>
+</body>
+</html>
