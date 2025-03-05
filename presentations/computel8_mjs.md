@@ -110,6 +110,7 @@ date: March 4th 2025
 	- Time-aligned annotations created using ELAN [@sloetjesAnnotationCategoryELAN2008]
 	- Narrow phonetic transcription of Tira using IPA
 ![Bilingual conversation in annotated ELAN. Typically only Tira (highlighted) would be transcribed](elan_biling.png)
+
 - Transcribed Tira sentences can be used for training ASR on Tira
 	- Hopefully, Whisper should retain knowledge of transcribing English as it learns Tira, and then be able to adapt to bilingual Tira-English audio
 
@@ -168,7 +169,6 @@ date: March 4th 2025
 - Use language identification (LID) to label regions as Tira or English
 	- Use Whisper large-v2 to transcribe English
 	- Use Whisper model fine-tuned on Tira to transcribe Tira
-		- This was a very small portion of data (~0.2% of the final training set)
 - Join hand-labeled Tira utterances with neighboring automatically labeled utterances
 
 ---
@@ -187,7 +187,7 @@ date: March 4th 2025
 
 ## Data augmentation examples
 - Ground truth: "Oh, I introduce Kuku to his mom? You can say it like this: {\ipa jɜ̂ŋcí kúkùŋú lɛ́ŋgɛ̀n}, wait {\ipa jɜ̂ŋcí kúkùŋú lɛ́ŋgɛ̀n} yeah you can say \[$_\mathrm{handlabeled}$ {\ipa jɜ̂ŋcí kúkùŋú lɛ́ŋgɛ̀n}\]"
-- Automatic: "Oh, I introduce **Cucutis** mom. **I** can say **I enjoy** this. **Young Chi Kukum Lengen**. **with**. \[$_\mathrm{handlabeled}$ {\ipa *jɜ̂ŋcí kúkùŋú lɛ́ŋgɛ̀n*}]"
+- Train label: "Oh, I introduce **Cucutis** mom. **I** can say **I enjoy** this. **Young Chi Kukum Lengen**. **with**. \[$_\mathrm{handlabeled}$ {\ipa jɜ̂ŋcí kúkùŋú lɛ́ŋgɛ̀n}]"
 	- First repetition of Tira sentence anglicized
 	- Second repetition omitted
 
@@ -195,7 +195,7 @@ date: March 4th 2025
 
 ## Data augmentation examples cont.
 - Ground truth: \[$_\mathrm{handlabeled}$ "{\ipa íŋgánɔ́nà jôɾà nd̪ɔ̀bà}"\] "Right, in (3) we have..."
-- Automatic: \[$_\mathrm{handlabeled}$ {\ipa íŋgánɔ́nà jôɾà nd̪ɔ̀bà}\] **What is the dream we have?** \[$_\mathrm{hallucinated}$ KELOLAND news. If you have a story you'd like to share with us, we're here to help. We're here to help. We're here to help.\]
+- Train label: \[$_\mathrm{handlabeled}$ {\ipa íŋgánɔ́nà jôɾà nd̪ɔ̀bà}\] **What is the dream we have?** \[$_\mathrm{hallucinated}$ KELOLAND news. If you have a story you'd like to share with us, we're here to help. We're here to help. We're here to help.\]
 - Most of transcription is hallucinated!
 
 ---
@@ -303,3 +303,18 @@ date: March 4th 2025
 |                   | Augmented | **0.55** | **0.34** | 4     |
 | Out-domain biling | Tira only | 0.57     | 0.83     | 0     |
 |                   | Augmented | **0.49** | **0.34** | 10    |
+
+---
+
+## Training parameters
+- Learning rate: $3e-4$
+- Optimization: AdamW w/ betas 0.9, 0.99
+- Batch size: 8 (effective)
+	- 4 \* 2 gradient accumulation steps
+- Parameter efficient FT: LoRA
+	- Default parameters from PEFT package
+	- r=32
+	- lora_alpha=64
+	- query & value projections
+	- lora_dropout=0.05
+	- bias="none"

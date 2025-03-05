@@ -438,11 +438,7 @@ as Tira or English
 <ul>
 <li class="fragment">Use Whisper large-v2 to transcribe English</li>
 <li class="fragment">Use Whisper model fine-tuned on Tira to transcribe
-Tira
-<ul>
-<li class="fragment">This was a very small portion of data (~0.2% of the
-final training set)</li>
-</ul></li>
+Tira</li>
 </ul></li>
 <li class="fragment">Join hand-labeled Tira utterances with neighboring
 automatically labeled utterances</li>
@@ -484,12 +480,12 @@ can say it like this: <span class="ipa">jɜ̂ŋcí kúkùŋú lɛ́ŋgɛ̀n<
 <span class="ipa">jɜ̂ŋcí kúkùŋú lɛ́ŋgɛ̀n</span> yeah you can say [<span
 class="math inline"><sub>handlabeled</sub></span> <span
 class="ipa">jɜ̂ŋcí kúkùŋú lɛ́ŋgɛ̀n</span>]”</li>
-<li class="fragment">Automatic: “Oh, I introduce
+<li class="fragment">Train label: “Oh, I introduce
 <strong>Cucutis</strong> mom. <strong>I</strong> can say <strong>I
 enjoy</strong> this. <strong>Young Chi Kukum Lengen</strong>.
 <strong>with</strong>. [<span
 class="math inline"><sub>handlabeled</sub></span> <span
-class="ipa"><em>jɜ̂ŋcí kúkùŋú lɛ́ŋgɛ̀n</em></span>]”
+class="ipa">jɜ̂ŋcí kúkùŋú lɛ́ŋgɛ̀n</span>]”
 <ul>
 <li class="fragment">First repetition of Tira sentence anglicized</li>
 <li class="fragment">Second repetition omitted</li>
@@ -504,7 +500,7 @@ cont.</h2>
 <li class="fragment">Ground truth: [<span
 class="math inline"><sub>handlabeled</sub></span> “<span
 class="ipa">íŋgánɔ́nà jôɾà nd̪ɔ̀bà</span>”] “Right, in (3) we have…”</li>
-<li class="fragment">Automatic: [<span
+<li class="fragment">Train label: [<span
 class="math inline"><sub>handlabeled</sub></span> <span
 class="ipa">íŋgánɔ́nà jôɾà nd̪ɔ̀bà</span>] <strong>What is the dream we
 have?</strong> [<span class="math inline"><sub>hallucinated</sub></span>
@@ -760,6 +756,28 @@ and Aug models</figcaption>
 </tr>
 </tbody>
 </table>
+</section>
+<section class="slide level1">
+
+<h2 id="training-parameters">Training parameters</h2>
+<ul>
+<li class="fragment">Learning rate: <span
+class="math inline">3<em>e</em> − 4</span></li>
+<li class="fragment">Optimization: AdamW w/ betas 0.9, 0.99</li>
+<li class="fragment">Batch size: 8 (effective)
+<ul>
+<li class="fragment">4 * 2 gradient accumulation steps</li>
+</ul></li>
+<li class="fragment">Parameter efficient FT: LoRA
+<ul>
+<li class="fragment">Default parameters from PEFT package</li>
+<li class="fragment">r=32</li>
+<li class="fragment">lora_alpha=64</li>
+<li class="fragment">query &amp; value projections</li>
+<li class="fragment">lora_dropout=0.05</li>
+<li class="fragment">bias=“none”</li>
+</ul></li>
+</ul>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-adamsEvaluationPhonemicTranscription2018" class="csl-entry"
