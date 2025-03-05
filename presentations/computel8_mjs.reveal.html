@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="author" content="Mark Simmons">
+  <title>Transcribing bilingual elicitation with Whisper</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="stylesheet" href="https://unpkg.com/reveal.js//dist/reset.css">
+  <link rel="stylesheet" href="https://unpkg.com/reveal.js//dist/reveal.css">
+  <style>
+    .reveal .sourceCode {  /* see #7635 */
+      overflow: visible;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for citations */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+      margin-bottom: 0em;
+    }
+    .hanging-indent div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }  </style>
+  <link rel="stylesheet" href="https://unpkg.com/reveal.js//dist/theme/white.css" id="theme">
+  <!-- taken from https://stackoverflow.com/questions/39424069/html-file-with-international-phonetic-alphabet-characters-and-light-or-extra-lig
+  on 24 Feb 2025 -->
+  <!-- <link href="https://fonts.googleapis.com/css?family=Assistant:300&subset=all" rel="stylesheet"> -->
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css?family=Doulos-SIL&amp;subset=all" rel="stylesheet" type="text/css">
+  <style>* {
+      font-family: "Assistant", "Doulos SIL", "Charis SIL", "Gentium Plus", "Arial Unicode MS", "Noto Sans", sans-serif;
+  }</style>
+  <style>
+  .ipa {
+      font-family: 'Arial Unicode MS';
+      }
+      
+  /* taken from https://gist.github.com/jsoma/629b9564af5b1e7fa62d0a3a0a47c296 on 21 Feb 2025 */
+  .slides {
+      font-size: 0.75em;
+  }
+  .reveal ul {
+      display: block;
+  }
+  .reveal ol {
+      display: block;
+  }
+
+  img {
+      max-height: 350px !important;
+  }
+
+  figcaption {
+      font-size: 0.6em !important;
+      font-style: italic !important;
+  }
+
+  .subtitle {
+      font-style: italic !important;
+  }
+
+  .date {
+      font-size: 0.75em !important;
+  }
+
+  .references {
+      height: 800px;
+      overflow-y: auto !important;
+  }
+
+  </style>
+
+  <script>
+  function resetSlideScrolling(slide) {
+      $(slide).removeClass('scrollable-slide');
+  }
+
+  function handleSlideScrolling(slide) {
+      if ($(slide).height() >= 800) {
+          $(slide).addClass('scrollable-slide');
+      }
+  }
+
+  Reveal.addEventListener('ready', function (event) {
+      handleSlideScrolling(event.currentSlide);
+  });
+
+  Reveal.addEventListener('slidechanged', function (event) {
+      resetSlideScrolling(event.previousSlide)
+      handleSlideScrolling(event.currentSlide);
+  });
+
+  </script>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+<section id="title-slide">
+  <h1 class="title">Transcribing bilingual elicitation with Whisper</h1>
+  <p class="subtitle">Comput-EL 8</p>
+  <p class="author">Mark Simmons</p>
+  <p class="date">March 4th 2025</p>
+</section>
+
+<section class="slide level1">
+
+<h2 id="roadmap">Roadmap</h2>
+<ul>
+<li class="fragment">Background</li>
+<li class="fragment">Tira language project</li>
+<li class="fragment">Experiment</li>
+<li class="fragment">Dataset creation</li>
+<li class="fragment">Results</li>
+</ul>
+</section>
+<section id="background" class="slide level1">
+<h1>Background</h1>
+</section>
+<section class="slide level1">
+
+<h2 id="automatic-speech-recognition">Automatic speech recognition</h2>
+<ul>
+<li class="fragment">(aka ASR)</li>
+<li class="fragment">Technology for transcribing speech
+automatically</li>
+<li class="fragment">Used in:
+<ul>
+<li class="fragment">Voice assistants (Siri, Alexa, Cortana)</li>
+<li class="fragment">Automatic captioning</li>
+<li class="fragment">Audio annotation</li>
+</ul></li>
+</ul>
+</section>
+<section class="slide level1">
+
+<h2 id="language-documentation">Language documentation</h2>
+<ul>
+<li class="fragment">“Lasting, multipurpose record of a language”<span
+class="citation"
+data-cites="himmelmannChapterLanguageDocumentation2008">(Himmelmann
+2008)</span></li>
+<li class="fragment">Language documentation can occur in context of
+linguistic fieldwork (in-situ or ex-situ)</li>
+<li class="fragment">In this presentation “fieldwork language” =
+language being documented</li>
+</ul>
+</section>
+<section class="slide level1">
+
+<h2 id="asr-for-language-documentation">ASR for language
+documentation</h2>
+<ul>
+<li class="fragment">Language documentation produces large quantities of
+audio data
+<ul>
+<li class="fragment">Could ASR speed up annotation?</li>
+</ul></li>
+<li class="fragment">Challenging as modern ASR systems trained for
+high-resource languages
+<ul>
+<li class="fragment">English, Spanish, Mandarin, etc.</li>
+</ul></li>
+<li class="fragment">Applying ASR to fieldwork languages requires either
+<strong>training</strong> a new ASR model from scratch or
+<strong>fine-tuning</strong> an existing ASR model using data from the
+given fieldwork language</li>
+</ul>
+</section>
+<section class="slide level1">
+
+<h2 id="prior-work-on-asr-for-documentation">Prior work on ASR for
+documentation</h2>
+<ul>
+<li class="fragment">Prior research has proposed new model architectures
+<span class="citation"
+data-cites="adamsEvaluationPhonemicTranscription2018 jimersonASRDocumentingAcutely2018 prudhommeauxAutomaticSpeechRecognition2021 amithEndtoEndAutomaticSpeech2021">(Adams
+et al. 2018; Robbie Jimerson and Prud’hommeaux 2018; Prud’hommeaux et
+al. 2021; Amith, Shi, and Castillo García 2021)</span></li>
+<li class="fragment">And investigated fine-tuning models for fieldwork
+languages <span class="citation"
+data-cites="morrisOneSizeDoes2021 jimersonUnhelpfulGuideSelecting2023">(Morris,
+Jimerson, and Prud’hommeaux 2021; Robert Jimerson, Liu, and
+Prud’hommeaux 2023)</span></li>
+<li class="fragment">However, these works focus on one particular genre
+of data: <strong>monolingual narratives</strong></li>
+<li class="fragment">What can we do with fieldwork data that isn’t
+monolingual?</li>
+</ul>
+</section>
+<section class="slide level1">
+
+<h2 id="linguistic-elicitation">Linguistic elicitation</h2>
+<ul>
+<li class="fragment"><strong>Elicitation</strong> is a common method for
+gathering data on a language</li>
+<li class="fragment">Consists of “asking questions” <span
+class="citation" data-cites="moselChapterFieldworkCommunity2008">(Mosel
+2008)</span> from language speakers
+<ul>
+<li class="fragment">E.g. translations of target words or sentences</li>
+<li class="fragment">grammaticality or felicity judgments</li>
+<li class="fragment">possible conversational responses</li>
+</ul></li>
+<li class="fragment">Elicitation is often bilingual with a <strong>meta
+language</strong> used to prompt and study the fieldwork language</li>
+</ul>
+</section>
+<section class="slide level1">
+
+<h2 id="asr-for-bilingual-elicitation">ASR for bilingual
+elicitation</h2>
+<ul>
+<li class="fragment">Likely received less attention in fieldwork ASR
+literature due to:
+<ul>
+<li class="fragment">Difficulty of training ASR on bilingual vs
+monolingual audio</li>
+<li class="fragment">Fieldwork teams not likely to create annotations
+for the metalanguage that can be used for training</li>
+</ul></li>
+<li class="fragment">Can we use ASR to help annotate this genre of
+data?</li>
+</ul>
+</section>
+<section class="slide level1">
+
+<h2 id="whisper">Whisper</h2>
+<ul>
+<li class="fragment">Multilingual ASR model from OpenAI <span
+class="citation"
+data-cites="radfordRobustSpeechRecognition2022">(Radford et al.
+2022)</span>
+<ul>
+<li class="fragment">Current state of the art in ASR for high-resource
+languages like English</li>
+</ul></li>
+<li class="fragment">Can specify language audio is in or let Whisper
+guess
+<ul>
+<li class="fragment">99 languages supported</li>
+</ul></li>
+<li class="fragment">ASR, voice activity detection (identifying speech
+vs no speech) and language identification all handled under one roof
+<ul>
+<li class="fragment">No pipelines needed!</li>
+<li class="fragment"><span class="math inline">⇒</span> good candidate
+for ASR on bilingual elicitation</li>
+</ul></li>
+</ul>
+</section>
+<section class="slide level1">
+
+<h2 id="whisper-on-code-switched-data">Whisper on code-switched
+data</h2>
+<ul>
+<li class="fragment">Whisper not designed to transcribe code-switched
+audio
+<ul>
+<li class="fragment">Given multilinguality, Whisper has some capacity to
+generalize to code-switching nevertheless <span class="citation"
+data-cites="pengPromptingHiddenTalent2023">(Peng et al.
+2023)</span></li>
+</ul></li>
+<li class="fragment">Bilingual elicitation is a similar use case to
+code-switched audio
+<ul>
+<li class="fragment">Can we adapt Whisper to bilingual elicitation?</li>
+</ul></li>
+</ul>
+</section>
+<section id="tira-language-project" class="slide level1">
+<h1>Tira language project</h1>
+</section>
+<section class="slide level1">
+
+<h2 id="tira-language-project-1">Tira language project</h2>
+<ul>
+<li class="fragment">Tira is a Kordofanian language of the Heiban group
+spoken in Nuba mountains region in Sudan</li>
+<li class="fragment">Tira language project studied Tira with consultant
+Himidan Hassen from 2020 to 2024
+<ul>
+<li class="fragment">Remote elicitation over zoom</li>
+<li class="fragment">Himidan recorded sessions on his computer with a
+microphone using Audacity</li>
+<li class="fragment">Topics covered lexicon, inflectional and
+derivational morphology, tonal phonology, syntax</li>
+<li class="fragment">English used as metalanguage for elicitation</li>
+</ul></li>
+</ul>
+</section>
+<section class="slide level1">
+
+<h2 id="tira-data-annotations">Tira data annotations</h2>
+<ul>
+<li class="fragment">Team hand-transcribed Tira elicited Tira sentences
+from elicitation audio
+<ul>
+<li class="fragment">Time-aligned annotations created using ELAN <span
+class="citation"
+data-cites="sloetjesAnnotationCategoryELAN2008">(Sloetjes and Wittenburg
+2008)</span></li>
+<li class="fragment">Narrow phonetic transcription of Tira using IPA
+<img data-src="elan_biling.png"
+alt="Bilingual conversation in annotated ELAN. Typically only Tira (highlighted) would be transcribed" /></li>
+</ul></li>
+<li class="fragment">Transcribed Tira sentences can be used for training
+ASR on Tira
+<ul>
+<li class="fragment">Hopefully, Whisper should retain knowledge of
+transcribing English as it learns Tira, and then be able to adapt to
+bilingual Tira-English audio</li>
+</ul></li>
+</ul>
+</section>
+<section class="slide level1">
+
+<h2 id="tira-data-annotations-cont.">Tira data annotations (cont.)</h2>
+<ul>
+<li class="fragment">English portions of recording not transcribed by
+hand</li>
+<li class="fragment">Can we use English audio for training anyways?
+<ul>
+<li class="fragment">Since Whisper is SOTA for English, we could use
+Whisper itself to annotate English portions of elicitation audio and
+train on that</li>
+<li class="fragment">This process is known as <strong>data
+augmentation</strong></li>
+</ul></li>
+</ul>
+</section>
+<section id="experiment" class="slide level1">
+<h1>Experiment</h1>
+</section>
+<section class="slide level1">
+
+<h2 id="experimental-questions">Experimental questions</h2>
+<ol type="1">
+<li class="fragment">When fine-tuned on Tira, how well does Whisper
+generalize to bilingual elicitation in Tira and English?</li>
+<li class="fragment">Does adding automatically transcribed English when
+training enable better generalization to bilingual elicitation?</li>
+</ol>
+</section>
+<section class="slide level1">
+
+<h2 id="experimental-process">Experimental process</h2>
+<ul>
+<li class="fragment">Organize elicitation data into ASR dataset</li>
+<li class="fragment">Hand-annotate recordings for evaluation</li>
+<li class="fragment">Generate machine labels for English data</li>
+<li class="fragment">Train two models:
+<ul>
+<li class="fragment">“Hand” model trained only on hand-labeled Tira
+datasets</li>
+<li class="fragment">“Augmented model” trained on both Tira and
+(augmented) English data</li>
+</ul></li>
+</ul>
+</section>
+<section id="dataset-creation" class="slide level1">
+<h1>Dataset creation</h1>
+</section>
+<section class="slide level1">
+
+<h2 id="tira-asr-dataset">Tira ASR dataset</h2>
+<ul>
+<li class="fragment">Trained on 9.5 hours of Tira
+<ul>
+<li class="fragment">42 hours of automatically transcribed English added
+during data augmentation</li>
+</ul></li>
+<li class="fragment">Tested models on three datasets
+<ul>
+<li class="fragment">Monolingual Tira (1h)</li>
+<li class="fragment">Bilingual English+Tira (1h)
+<ul>
+<li class="fragment">Two recordings: in-domain and out-domain
+<ul>
+<li class="fragment">In-domain = Tira was seen by model during training,
+English was not
+<ul>
+<li class="fragment">Skipped adding English from in-domain recording for
+augmented training data</li>
+</ul></li>
+<li class="fragment">Out-domain = neither Tira nor English was seen
+during training</li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+</section>
+<section class="slide level1">
+
+<h2 id="english-data-augmentation">English data augmentation</h2>
+<figure>
+<img data-src="data_aug_ex.png"
+alt="Example output from data augmentation" />
+<figcaption aria-hidden="true">Example output from data
+augmentation</figcaption>
+</figure>
+<ul>
+<li class="fragment">Use PyAnnote voice activity detection <span
+class="citation" data-cites="bredinPyannoteMetricsToolkit2017">(Bredin
+2017)</span> to identify unannotated regions of speech</li>
+<li class="fragment">Use language identification (LID) to label regions
+as Tira or English
+<ul>
+<li class="fragment">Use Whisper large-v2 to transcribe English</li>
+<li class="fragment">Use Whisper model fine-tuned on Tira to transcribe
+Tira
+<ul>
+<li class="fragment">This was a very small portion of data (~0.2% of the
+final training set)</li>
+</ul></li>
+</ul></li>
+<li class="fragment">Join hand-labeled Tira utterances with neighboring
+automatically labeled utterances</li>
+</ul>
+</section>
+<section class="slide level1">
+
+<h2 id="limitations-of-the-augmentation-pipeline">Limitations of the
+augmentation pipeline</h2>
+<ul>
+<li class="fragment">VAD + LID pipeline very ‘coarse’ and often lumps
+Tira &amp; English sentences together</li>
+<li class="fragment">LID errors introduce mistranscribed Tira into
+dataset
+<ul>
+<li class="fragment">E.g. <em>kukungapitito</em> for <span
+class="ipa">[Kúkù ŋgápìt̪ìt̪ɔ́]</span> ‘Kuku hunted (in someone’s
+place)’</li>
+<li class="fragment">Or <em>ngiyol</em> for <span
+class="ipa">[ŋìjɔ́l]</span> ‘eat’</li>
+</ul></li>
+<li class="fragment">Common Whisper failure modes:
+<ul>
+<li class="fragment">Repeated phrases are sometimes only transcribed
+once</li>
+<li class="fragment">Or single word/phrase may repeat over and over
+again whether it’s repeated in the audio or not</li>
+<li class="fragment">Entire phrases or sentences may be
+hallucinated</li>
+</ul></li>
+</ul>
+</section>
+<section class="slide level1">
+
+<h2 id="data-augmentation-examples">Data augmentation examples</h2>
+<ul>
+<li class="fragment">Ground truth: “Oh, I introduce Kuku to his mom? You
+can say it like this: <span class="ipa">jɜ̂ŋcí kúkùŋú lɛ́ŋgɛ̀n</span>, wait
+<span class="ipa">jɜ̂ŋcí kúkùŋú lɛ́ŋgɛ̀n</span> yeah you can say [<span
+class="math inline"><sub>handlabeled</sub></span> <span
+class="ipa">jɜ̂ŋcí kúkùŋú lɛ́ŋgɛ̀n</span>]”</li>
+<li class="fragment">Automatic: “Oh, I introduce
+<strong>Cucutis</strong> mom. <strong>I</strong> can say <strong>I
+enjoy</strong> this. <strong>Young Chi Kukum Lengen</strong>.
+<strong>with</strong>. [<span
+class="math inline"><sub>handlabeled</sub></span> <span
+class="ipa"><em>jɜ̂ŋcí kúkùŋú lɛ́ŋgɛ̀n</em></span>]”
+<ul>
+<li class="fragment">First repetition of Tira sentence anglicized</li>
+<li class="fragment">Second repetition omitted</li>
+</ul></li>
+</ul>
+</section>
+<section class="slide level1">
+
+<h2 id="data-augmentation-examples-cont.">Data augmentation examples
+cont.</h2>
+<ul>
+<li class="fragment">Ground truth: [<span
+class="math inline"><sub>handlabeled</sub></span> “<span
+class="ipa">íŋgánɔ́nà jôɾà nd̪ɔ̀bà</span>”] “Right, in (3) we have…”</li>
+<li class="fragment">Automatic: [<span
+class="math inline"><sub>handlabeled</sub></span> <span
+class="ipa">íŋgánɔ́nà jôɾà nd̪ɔ̀bà</span>] <strong>What is the dream we
+have?</strong> [<span class="math inline"><sub>hallucinated</sub></span>
+KELOLAND news. If you have a story you’d like to share with us, we’re
+here to help. We’re here to help. We’re here to help.]</li>
+<li class="fragment">Most of transcription is hallucinated!</li>
+</ul>
+</section>
+<section id="experiment-1" class="slide level1">
+<h1>Experiment</h1>
+</section>
+<section class="slide level1">
+
+<h2 id="training">Training</h2>
+<ul>
+<li class="fragment">Fine-tune Whisper large-v3 for 10 epochs on both
+datasets
+<ul>
+<li class="fragment">1 epoch = 1 iteration through all train data</li>
+<li class="fragment">“Hand” – fine-tune on hand-labeled Tira only</li>
+<li class="fragment">“Augmented” – fine-tune on Tira + machine-labeled
+English</li>
+</ul></li>
+<li class="fragment">Report word error rate (WER) and character error
+rater (CER)
+<ul>
+<li class="fragment">WER = how many words are predicted incorrectly</li>
+<li class="fragment">CER = how many characters are predicted
+incorrectly</li>
+<li class="fragment">For both, <strong>lower means better</strong></li>
+</ul></li>
+</ul>
+</section>
+<section class="slide level1">
+
+<h2 id="training-results">Training results</h2>
+<figure>
+<img data-src="asr_metrics.png"
+alt="Model performance across training epochs" />
+<figcaption aria-hidden="true">Model performance across training
+epochs</figcaption>
+</figure>
+<ul>
+<li class="fragment">Epoch=0 is equivalent to baseline, i.e. Whisper
+large-v3 before fine-tuning</li>
+<li class="fragment">Both models perform almost <strong>exactly the
+same</strong> on monolingual Tira validation set</li>
+<li class="fragment">Augmented model best on both bilingual datasets
+<ul>
+<li class="fragment">For in-domain, hand model <strong>barely surpasses
+baseline</strong></li>
+<li class="fragment">For out-domain, hand model <strong>is always worse
+than baseline</strong></li>
+</ul></li>
+</ul>
+</section>
+<section class="slide level1">
+
+<h2 id="output-examples-in-domain">Output examples: in-domain</h2>
+<ul>
+<li class="fragment">GT = ground truth, HM = hand model, AM = augmented
+model</li>
+<li class="fragment">GT: “Is this right, Himidan?” “Yeah, that’s right.
+<span class="ipa">léɲál və́lɛ̂ðà</span> So the ‘éɲá’ part is indicating
+the subject. [The ‘l’, this thing at the beginning, is your object.]
+Exactly, exactly. That’s right.”</li>
+<li class="fragment">HM: “is this right <strong>gimi dan</strong> yeah
+that’s right <span class="ipa">l<strong>i</strong>ɲál və́lɛ̀ðà</span> so
+the eɲà part is indicating the subject exactly exactly that’s right”
+<ul>
+<li class="fragment">Bracketed portion omitted</li>
+</ul></li>
+<li class="fragment">AM: “Is this right, <strong>Hibby Dunn</strong>?
+Yeah, that’s right. <span class="ipa">l<strong>ì</strong>ɲál
+və́lɛ̂ðà</span> So the <strong>enya</strong> part is indicating the
+subject. Exactly. Exactly. That’s right.”
+<ul>
+<li class="fragment">Bracketed portion omitted again</li>
+<li class="fragment">“<span class="ipa">éɲá</span>” is anglicized</li>
+</ul></li>
+</ul>
+</section>
+<section class="slide level1">
+
+<h2 id="output-examples-in-domain-cont.">Output examples: in-domain
+(cont.)</h2>
+<ul>
+<li class="fragment">GT: “So what are we hearing tone-wise at the
+beginning? The same as the other one? The same as the other
+imperfective? I think so. Could you say it again, Himidan? <span
+class="ipa">láŋə́l və́lɛ̂ðà nd̪ɔ̀bà láŋə́l və́lɛ̂ðà nd̪ɔ̀bà</span> Okay. <span
+class="ipa">láŋə́l və́lɛ̂ðà nd̪ɔ̀bà</span>”</li>
+<li class="fragment">HM: “<span class="ipa">láŋə́l və́lɛ̀ðà ndɔ̀bà láŋə̄l
+və́lɛ̀ðà ndɔ̀bà</span>”
+<ul>
+<li class="fragment">English skipped over!</li>
+</ul></li>
+<li class="fragment">AM: “So what do we hear tone-wise at the beginning?
+The same as the other one, the same as the other imperfective.
+<strong>Thanks, sir.</strong> Did you say <strong>they didn’t have
+them</strong>? <span class="ipa">láŋə́l və́lɛ̂ðà nd̪ɔ̀bà láŋə́l və́lɛ̂ðà
+nd̪ɔ̀bà</span> Okay. <span class="ipa">láŋə́l və́lɛ̂ðà nd̪ɔ̀bà</span>”
+<ul>
+<li class="fragment">Only minor errors</li>
+</ul></li>
+</ul>
+</section>
+<section class="slide level1">
+
+<h2 id="output-examples-augmented-model-out-domain">Output examples:
+augmented model (out-domain)</h2>
+<ul>
+<li class="fragment">GT: “So how would you spell this, the word for
+brown squirrel, Himidan? ŋìcɔ́lɔ̀ should be N-G-I-C-O-L-O. <span
+class="ipa">ŋìcɔ́lɔ̀. ŋ̀cɔ́lɔ̀</span> Yeah, ŋìcɔ́lɔ̀. Oh, okay. I heard a
+different second vowel. Yeah, it’s ŋìcɔ́lɔ̀. Would you say it one more
+time? <span class="ipa">ŋ̀cɔ́lɔ̀ ŋ̀cɔ́lɔ̀</span>”</li>
+<li class="fragment">HM: “<span class="ipa">ŋìcɔ́lɔ̀ ŋìcɔ́lɔ̀ ŋìcɔ́lɔ̀ ŋìcɔ́lɔ̀
+ŋìcɔ́lɔ̀ ŋìcɔ́lɔ̀ ŋìcɔ́lɔ̀ ŋìcɔ́lɔ̀ ŋìcɔ́lɔ̀ ŋìcɔ́lɔ̀</span>”
+<ul>
+<li class="fragment">Just repeats Tira word</li>
+</ul></li>
+</ul>
+</section>
+<section class="slide level1">
+
+<h2 id="output-examples-augmented-model-out-domain-1">Output examples:
+augmented model (out-domain)</h2>
+<ul>
+<li class="fragment">AM: “So how would you spell this? The word for
+brown squirrel, <strong>Hennie Dunn?</strong> <strong>ngihtolo</strong>
+should be n-g-i-c-o-lo. <strong>Ngicholo</strong>. <span
+class="ipa"><strong>ŋìcɔ́lɔ̀</strong></span> I heard a different second.
+It’s <strong>me channel</strong>. Would you say it one more time?
+<strong>neato</strong>”
+<ul>
+<li class="fragment">Tira word transcribed correctly once, various
+incorrect anglicizations elsewhere</li>
+<li class="fragment">Remember from data augmentation pipeline that
+anglicized Tira is present in augmented training data alongside IPA</li>
+</ul></li>
+</ul>
+</section>
+<section class="slide level1">
+
+<h2 id="conclusion">Conclusion</h2>
+<ul>
+<li class="fragment">Fine-tuning Whisper on Tira resulted in rapid
+<strong>overfitting</strong> on Tira and <strong>catastrophic
+forgetting</strong> of English</li>
+<li class="fragment">Adding in automatically transcribed English to the
+training data prevented overfitting but introduced errors owing to
+<strong>anglicized Tira</strong> appearing in the training data
+<ul>
+<li class="fragment">This noise in the training data owes to the coarse
+nature of the VAD+LID pipeline used for data augmentation</li>
+<li class="fragment">However, model performance on <strong>monolingual
+Tira</strong> was not hurt by adding in augmented data</li>
+</ul></li>
+<li class="fragment">We discuss genre of bilingual elicitation, but our
+results are relevant to conversational code-switching as well</li>
+</ul>
+</section>
+<section class="slide level1">
+
+<h2 id="next-directions">Next directions</h2>
+<ul>
+<li class="fragment">Develop more informative evaluation metrics
+<ul>
+<li class="fragment">E.g. Tira hit rate</li>
+<li class="fragment">LID accuracy per word</li>
+</ul></li>
+<li class="fragment">How to clean up augmented data?
+<ul>
+<li class="fragment">Iterative training?</li>
+<li class="fragment">Re-transcribe non-English looking words?</li>
+</ul></li>
+<li class="fragment">Would another ASR architecture (e.g. CTC)
+hallucinate less?</li>
+</ul>
+</section>
+<section id="thank-you" class="slide level1">
+<h1>Thank you!</h1>
+</section>
+<section id="appendices" class="slide level1">
+<h1>Appendices</h1>
+</section>
+<section class="slide level1">
+
+<h2 id="metrics-by-language">Metrics by language</h2>
+<figure>
+<img data-src="metrics_by_lang.png"
+alt="Language-specific WER and CER for Hand and Aug models" />
+<figcaption aria-hidden="true">Language-specific WER and CER for Hand
+and Aug models</figcaption>
+</figure>
+</section>
+<section class="slide level1">
+
+<h2 id="metric-table">Metric table</h2>
+<table>
+<thead>
+<tr>
+<th>Dataset</th>
+<th>Model</th>
+<th>WER</th>
+<th>CER</th>
+<th>Epoch</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tira monoling</td>
+<td>Tira only</td>
+<td><strong>0.48</strong></td>
+<td><strong>0.11</strong></td>
+<td>8</td>
+</tr>
+<tr>
+<td></td>
+<td>Augmented</td>
+<td>0.53</td>
+<td>0.13</td>
+<td>10</td>
+</tr>
+<tr>
+<td>In-domain biling</td>
+<td>Tira only</td>
+<td>0.83</td>
+<td>0.57</td>
+<td>2</td>
+</tr>
+<tr>
+<td></td>
+<td>Augmented</td>
+<td><strong>0.55</strong></td>
+<td><strong>0.34</strong></td>
+<td>4</td>
+</tr>
+<tr>
+<td>Out-domain biling</td>
+<td>Tira only</td>
+<td>0.57</td>
+<td>0.83</td>
+<td>0</td>
+</tr>
+<tr>
+<td></td>
+<td>Augmented</td>
+<td><strong>0.49</strong></td>
+<td><strong>0.34</strong></td>
+<td>10</td>
+</tr>
+</tbody>
+</table>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-adamsEvaluationPhonemicTranscription2018" class="csl-entry"
+role="listitem">
+Adams, Oliver, Trevor Cohn, Graham Neubig, Hilaria Cruz, Steven Bird,
+and Alexis Michaud. 2018. <span>“Evaluation <span>Phonemic
+Transcription</span> of <span>Low-Resource Tonal Languages</span> for
+<span>Language Documentation</span>.”</span> In <em>Proceedings of the
+<span>Eleventh International Conference</span> on <span>Language
+Resources</span> and <span>Evaluation</span> (<span>LREC</span>
+2018)</em>, edited by Nicoletta Calzolari, Khalid Choukri, Christopher
+Cieri, Thierry Declerck, Sara Goggi, Koiti Hasida, Hitoshi Isahara, et
+al. Miyazaki, Japan: European Language Resources Association (ELRA).
+</div>
+<div id="ref-amithEndtoEndAutomaticSpeech2021" class="csl-entry"
+role="listitem">
+Amith, Jonathan D., Jiatong Shi, and Rey Castillo García. 2021.
+<span>“End-to-<span>End Automatic Speech Recognition</span>: <span>Its
+Impact</span> on the <span class="nocase">Workflowin Documenting
+Yolox<span class="nocase">ó</span>chitl Mixtec</span>.”</span> In
+<em>Proceedings of the <span>First Workshop</span> on <span>Natural
+Language Processing</span> for <span>Indigenous Languages</span> of the
+<span>Americas</span></em>, edited by Manuel Mager, Arturo Oncevay,
+Annette Rios, Ivan Vladimir Meza Ruiz, Alexis Palmer, Graham Neubig, and
+Katharina Kann, 64–80. Online: Association for Computational
+Linguistics. <a
+href="https://doi.org/10.18653/v1/2021.americasnlp-1.8">https://doi.org/10.18653/v1/2021.americasnlp-1.8</a>.
+</div>
+<div id="ref-bredinPyannoteMetricsToolkit2017" class="csl-entry"
+role="listitem">
+Bredin, Hervé. 2017. <span>“Pyannote.metrics: <span>A Toolkit</span> for
+<span>Reproducible Evaluation</span>, <span>Diagnostic</span>, and
+<span>Error Analysis</span> of <span>Speaker Diarization
+Systems</span>.”</span> In <em>Proc. <span>Interspeech</span> 2017</em>,
+3587–91. <a
+href="https://doi.org/10.21437/Interspeech.2017-411">https://doi.org/10.21437/Interspeech.2017-411</a>.
+</div>
+<div id="ref-himmelmannChapterLanguageDocumentation2008"
+class="csl-entry" role="listitem">
+Himmelmann, Nikolaus P. 2008. <span>“Chapter 1 <span>Language</span>
+Documentation: <span>What</span> Is It and What Is It Good For?”</span>
+In <em>Essentials of <span>Language Documentation</span></em>, 1–30. De
+Gruyter Mouton. <a
+href="https://doi.org/10.1515/9783110197730.1">https://doi.org/10.1515/9783110197730.1</a>.
+</div>
+<div id="ref-jimersonASRDocumentingAcutely2018" class="csl-entry"
+role="listitem">
+Jimerson, Robbie, and Emily Prud’hommeaux. 2018. <span>“<span>ASR</span>
+for <span>Documenting Acutely Under-Resourced Indigenous
+Languages</span>.”</span> In <em>Proceedings of the <span>Eleventh
+International Conference</span> on <span>Language Resources</span> and
+<span>Evaluation</span> (<span>LREC</span> 2018)</em>, edited by
+Nicoletta Calzolari, Khalid Choukri, Christopher Cieri, Thierry
+Declerck, Sara Goggi, Koiti Hasida, Hitoshi Isahara, et al. Miyazaki,
+Japan: European Language Resources Association (ELRA).
+</div>
+<div id="ref-jimersonUnhelpfulGuideSelecting2023" class="csl-entry"
+role="listitem">
+Jimerson, Robert, Zoey Liu, and Emily Prud’hommeaux. 2023. <span>“An
+(Unhelpful) Guide to Selecting the Best <span>ASR</span> Architecture
+for Your Under-Resourced Language.”</span> In <em>Proceedings of the
+61st <span>Annual Meeting</span> of the <span>Association</span> for
+<span>Computational Linguistics</span> (<span>Volume</span> 2:
+<span>Short Papers</span>)</em>. Association for Computational
+Linguistics. <a
+href="https://doi.org/10.18653/v1/2023.acl-short.87">https://doi.org/10.18653/v1/2023.acl-short.87</a>.
+</div>
+<div id="ref-morrisOneSizeDoes2021" class="csl-entry" role="listitem">
+Morris, Ethan, Robbie Jimerson, and Emily Prud’hommeaux. 2021.
+<span>“One <span>Size Does Not Fit All</span> in
+<span>Resource-Constrained ASR</span>.”</span> In <em>Interspeech
+2021</em>. Interspeech_2021. ISCA. <a
+href="https://doi.org/10.21437/interspeech.2021-1970">https://doi.org/10.21437/interspeech.2021-1970</a>.
+</div>
+<div id="ref-moselChapterFieldworkCommunity2008" class="csl-entry"
+role="listitem">
+Mosel, Ulrike. 2008. <span>“Chapter 3 <span>Fieldwork</span> and
+Community Language.”</span> In <em>Essentials of <span>Language
+Documentation</span></em>, 67–86. De Gruyter Mouton. <a
+href="https://doi.org/10.1515/9783110197730.67">https://doi.org/10.1515/9783110197730.67</a>.
+</div>
+<div id="ref-pengPromptingHiddenTalent2023" class="csl-entry"
+role="listitem">
+Peng, Puyuan, Brian Yan, Shinji Watanabe, and David Harwath. 2023.
+<span>“Prompting the <span>Hidden Talent</span> of <span>Web-Scale
+Speech Models</span> for <span>Zero-Shot Task
+Generalization</span>.”</span> In <em><span>INTERSPEECH</span>
+2023</em>, 396–400. ISCA. <a
+href="https://doi.org/10.21437/Interspeech.2023-2032">https://doi.org/10.21437/Interspeech.2023-2032</a>.
+</div>
+<div id="ref-prudhommeauxAutomaticSpeechRecognition2021"
+class="csl-entry" role="listitem">
+Prud’hommeaux, Emily, Robbie Jimerson, Richard Hatcher, and Karin
+Michelson. 2021. <span>“Automatic <span>Speech Recognition</span> for
+<span>Supporting Endangered Language Documentation</span>.”</span>
+<em>Language Documentation &amp; Conservation</em> 15: 491–513.
+</div>
+<div id="ref-radfordRobustSpeechRecognition2022" class="csl-entry"
+role="listitem">
+Radford, Alec, Jong Wook Kim, Tao Xu, Greg Brockman, Christine McLeavey,
+and Ilya Sutskever. 2022. <span>“Robust <span>Speech Recognition</span>
+via <span>Large-Scale Weak Supervision</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/ARXIV.2212.04356">https://doi.org/10.48550/ARXIV.2212.04356</a>.
+</div>
+<div id="ref-sloetjesAnnotationCategoryELAN2008" class="csl-entry"
+role="listitem">
+Sloetjes, Han, and Peter Wittenburg. 2008. <span>“Annotation by
+<span>Category</span>: <span>ELAN</span> and <span>ISO
+DCR</span>.”</span> In <em>Proceedings of the <span>Sixth International
+Conference</span> on <span>Language Resources</span> and
+<span>Evaluation</span> (<span>LREC</span>’08)</em>, edited by Nicoletta
+Calzolari, Khalid Choukri, Bente Maegaard, Joseph Mariani, Jan Odijk,
+Stelios Piperidis, and Daniel Tapias. Marrakech, Morocco: European
+Language Resources Association (ELRA).
+</div>
+</div>
+</section>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/reveal.js//dist/reveal.js"></script>
+
+  <!-- reveal.js plugins -->
+  <script src="https://unpkg.com/reveal.js//plugin/notes/notes.js"></script>
+  <script src="https://unpkg.com/reveal.js//plugin/search/search.js"></script>
+  <script src="https://unpkg.com/reveal.js//plugin/zoom/zoom.js"></script>
+
+  <script>
+
+      // Full list of configuration options available at:
+      // https://revealjs.com/config/
+      Reveal.initialize({
+        // Display controls in the bottom right corner
+        controls: true,
+
+        // Help the user learn the controls by providing hints, for example by
+        // bouncing the down arrow when they first encounter a vertical slide
+        controlsTutorial: true,
+
+        // Determines where controls appear, "edges" or "bottom-right"
+        controlsLayout: 'bottom-right',
+
+        // Visibility rule for backwards navigation arrows; "faded", "hidden"
+        // or "visible"
+        controlsBackArrows: 'faded',
+
+        // Display a presentation progress bar
+        progress: true,
+
+        // Display the page number of the current slide
+        slideNumber: true,
+
+        // 'all', 'print', or 'speaker'
+        showSlideNumber: 'all',
+
+        // Add the current slide number to the URL hash so that reloading the
+        // page/copying the URL will return you to the same slide
+        hash: true,
+
+        // Start with 1 for the hash rather than 0
+        hashOneBasedIndex: false,
+
+        // Flags if we should monitor the hash and change slides accordingly
+        respondToHashChanges: true,
+
+        // Push each slide change to the browser history
+        history: false,
+
+        // Enable keyboard shortcuts for navigation
+        keyboard: true,
+
+        // Enable the slide overview mode
+        overview: true,
+
+        // Disables the default reveal.js slide layout (scaling and centering)
+        // so that you can use custom CSS layout
+        disableLayout: false,
+
+        // Vertical centering of slides
+        center: true,
+
+        // Enables touch navigation on devices with touch input
+        touch: true,
+
+        // Loop the presentation
+        loop: false,
+
+        // Change the presentation direction to be RTL
+        rtl: false,
+
+        // see https://revealjs.com/vertical-slides/#navigation-mode
+        navigationMode: 'default',
+
+        // Randomizes the order of slides each time the presentation loads
+        shuffle: false,
+
+        // Turns fragments on and off globally
+        fragments: true,
+
+        // Flags whether to include the current fragment in the URL,
+        // so that reloading brings you to the same fragment position
+        fragmentInURL: true,
+
+        // Flags if the presentation is running in an embedded mode,
+        // i.e. contained within a limited portion of the screen
+        embedded: false,
+
+        // Flags if we should show a help overlay when the questionmark
+        // key is pressed
+        help: true,
+
+        // Flags if it should be possible to pause the presentation (blackout)
+        pause: true,
+
+        // Flags if speaker notes should be visible to all viewers
+        showNotes: false,
+
+        // Global override for autoplaying embedded media (null/true/false)
+        autoPlayMedia: null,
+
+        // Global override for preloading lazy-loaded iframes (null/true/false)
+        preloadIframes: null,
+
+        // Number of milliseconds between automatically proceeding to the
+        // next slide, disabled when set to 0, this value can be overwritten
+        // by using a data-autoslide attribute on your slides
+        autoSlide: 0,
+
+        // Stop auto-sliding after user input
+        autoSlideStoppable: true,
+
+        // Use this method for navigation when auto-sliding
+        autoSlideMethod: null,
+
+        // Specify the average time in seconds that you think you will spend
+        // presenting each slide. This is used to show a pacing timer in the
+        // speaker view
+        defaultTiming: null,
+
+        // Enable slide navigation via mouse wheel
+        mouseWheel: false,
+
+        // The display mode that will be used to show slides
+        display: 'block',
+
+        // Hide cursor if inactive
+        hideInactiveCursor: true,
+
+        // Time before the cursor is hidden (in ms)
+        hideCursorTime: 5000,
+
+        // Opens links in an iframe preview overlay
+        previewLinks: false,
+
+        // Transition style (none/fade/slide/convex/concave/zoom)
+        transition: 'slide',
+
+        // Transition speed (default/fast/slow)
+        transitionSpeed: 'default',
+
+        // Transition style for full page slide backgrounds
+        // (none/fade/slide/convex/concave/zoom)
+        backgroundTransition: 'fade',
+
+        // Number of slides away from the current that are visible
+        viewDistance: 3,
+
+        // Number of slides away from the current that are visible on mobile
+        // devices. It is advisable to set this to a lower number than
+        // viewDistance in order to save resources.
+        mobileViewDistance: 2,
+
+        // reveal.js plugins
+        plugins: [
+          RevealNotes,
+          RevealSearch,
+          RevealZoom
+        ]
+      });
+    </script>
+    </body>
+</html>
