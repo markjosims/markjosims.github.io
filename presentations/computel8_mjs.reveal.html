@@ -376,9 +376,11 @@ training enable better generalization to bilingual elicitation?</li>
 
 <h2 id="experimental-process">Experimental process</h2>
 <ul>
-<li class="fragment">Organize elicitation data into ASR dataset</li>
-<li class="fragment">Hand-annotate recordings for evaluation</li>
-<li class="fragment">Generate machine labels for English data</li>
+<li class="fragment">Organize Tira annotations into ASR dataset</li>
+<li class="fragment">Hand-annotate three entire recordings for
+testing</li>
+<li class="fragment">Generate machine labels for English training
+data</li>
 <li class="fragment">Train two models:
 <ul>
 <li class="fragment">“Hand” model trained only on hand-labeled Tira
@@ -676,7 +678,10 @@ results are relevant to conversational code-switching as well</li>
 <li class="fragment">How to clean up augmented data?
 <ul>
 <li class="fragment">Iterative training?</li>
-<li class="fragment">Re-transcribe non-English looking words?</li>
+<li class="fragment">Re-transcribe non-English looking words like
+“ngiyol”?</li>
+<li class="fragment">Keyword prompting so “Himidan” is spelled
+correctly</li>
 </ul></li>
 <li class="fragment">Would another ASR architecture (e.g. CTC)
 hallucinate less?</li>

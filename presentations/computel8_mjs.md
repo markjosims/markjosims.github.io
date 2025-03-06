@@ -136,9 +136,9 @@ date: March 4th 2025
 ---
 
 ## Experimental process
-- Organize elicitation data into ASR dataset
-- Hand-annotate recordings for evaluation
-- Generate machine labels for English data
+- Organize Tira annotations into ASR dataset
+- Hand-annotate three entire recordings for testing
+- Generate machine labels for English training data
 - Train two models:
 	- "Hand" model trained only on hand-labeled Tira datasets
 	- "Augmented model" trained on both Tira and (augmented) English data
@@ -276,7 +276,8 @@ date: March 4th 2025
 	- LID accuracy per word
 - How to clean up augmented data?
 	- Iterative training?
-	- Re-transcribe non-English looking words?
+	- Re-transcribe non-English looking words like "ngiyol"?
+	- Keyword prompting so "Himidan" is spelled correctly
 - Would another ASR architecture (e.g. CTC) hallucinate less?
 
 # Thank you!
