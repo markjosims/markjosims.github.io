@@ -136,8 +136,8 @@ date: March 4th 2025
 ---
 
 ## Experimental process
-- Organize Tira annotations into ASR dataset
-- Hand-annotate three entire recordings for testing
+- Organize Tira annotations into monolingual ASR training dataset
+- Hand-annotate three entire recordings for testing on bilingual data
 - Generate machine labels for English training data
 - Train two models:
 	- "Hand" model trained only on hand-labeled Tira datasets
